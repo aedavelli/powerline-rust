@@ -42,12 +42,19 @@ macro_rules! append_cwd_segments {
 
 impl<S: CwdScheme> Module for Cwd<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let current_dir =
-			if self.resolve_symlinks { env::current_dir()? } else { path::PathBuf::from(env::var("PWD")?) };
+		let current_dir = if cfg!(windows) {
+			env::current_dir()?
+		} else {
+			if self.resolve_symlinks {
+				env::current_dir()?
+			} else {
+				path::PathBuf::from(env::var("PWD")?)
+			}
+		};
 
 		let mut cwd = current_dir.to_str().unwrap();
 
-		if let Some(home_path) = env::home_dir() {
+		if let Some(home_path) = dirs::home_dir() {
 			let home_str = home_path.to_str().unwrap();
 
 			if cwd.starts_with(home_str) {
@@ -56,13 +63,13 @@ impl<S: CwdScheme> Module for Cwd<S> {
 			}
 		}
 
-		let depth = cwd.matches('/').count();
+		let depth = cwd.matches(path::MAIN_SEPARATOR).count();
 		if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
 			let left = self.wanted_seg_num / 2;
 			let right = self.wanted_seg_num - left;
 
-			let start = cwd.split('/').skip(1).take(left);
-			let end = cwd.split('/').skip(depth - right + 1);
+			let start = cwd.split(path::MAIN_SEPARATOR).skip(1).take(left);
+			let end = cwd.split(path::MAIN_SEPARATOR).skip(depth - right + 1);
 
 			append_cwd_segments!(segments, start);
 			segments.push(Segment::special(
@@ -74,7 +81,7 @@ impl<S: CwdScheme> Module for Cwd<S> {
 			));
 			append_cwd_segments!(segments, end);
 		} else {
-			append_cwd_segments!(segments, cwd.split('/').skip(1));
+			append_cwd_segments!(segments, cwd.split(path::MAIN_SEPARATOR).skip(1));
 		};
 
 		// todo get rid of me

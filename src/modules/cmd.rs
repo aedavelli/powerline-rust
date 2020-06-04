@@ -29,16 +29,27 @@ impl<S: CmdScheme> Cmd<S> {
 
 impl<S: CmdScheme> Module for Cmd<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let (fg, bg) = if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
+		let (fg, bg) = if cfg!(windows) {
 			(S::CMD_PASSED_FG, S::CMD_PASSED_BG)
 		} else {
-			(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
+			if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
+				(S::CMD_PASSED_FG, S::CMD_PASSED_BG)
+			} else {
+				(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
+			}
 		};
 
-		let is_root = users::get_current_uid() == 0;
-		let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
-		segments.push(Segment::simple(format!(" {} ", special), fg, bg));
+		#[cfg(not(target_os = "windows"))]
+		{
+			let is_root = users::get_current_uid() == 0;
+			let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
+			segments.push(Segment::simple(format!(" {} ", special), fg, bg));
+		}
 
+		#[cfg(target_os = "windows")]
+		{
+			segments.push(Segment::simple(format!(" {} ", S::CMD_USER_SYMBOL), fg, bg));
+		}
 		Ok(())
 	}
 }

@@ -1,4 +1,4 @@
-use std::{ffi::CString, marker::PhantomData};
+use std::{marker::PhantomData, fs};
 
 use super::Module;
 use crate::{terminal::Color, Segment, R};
@@ -18,10 +18,7 @@ impl<S: ReadOnlyScheme> ReadOnly<S> {
 
 impl<S: ReadOnlyScheme> Module for ReadOnly<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let readonly = unsafe {
-			let path = CString::new("./")?;
-			libc::access(path.as_ptr(), libc::W_OK) != 0
-		};
+		let readonly = fs::metadata("./")?.permissions().readonly();
 
 		if readonly {
 			segments.push(Segment::simple(

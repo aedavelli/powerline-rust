@@ -20,7 +20,11 @@ impl<S: ExitCodeScheme> ExitCode<S> {
 
 impl<S: ExitCodeScheme> Module for ExitCode<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let exit_code = env::args().nth(1).unwrap_or_else(|| "1".to_string());
+		let exit_code = if cfg!(windows) {
+			String::from("0")
+		} else {
+			env::args().nth(1).unwrap_or_else(|| "0".to_string())
+		};
 
 		if exit_code != "0" {
 			let (fg, bg) = (S::EXIT_CODE_FG, S::EXIT_CODE_BG);

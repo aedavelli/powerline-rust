@@ -46,6 +46,9 @@ impl std::fmt::Display for BgColor {
 
 		#[cfg(feature = "zsh-shell")]
 		return write!(f, "%{{\x1b[48;5;{}m%}}", self.0);
+
+		#[cfg(feature = "PowerShell")]
+		return write!(f, "$([char]27)[48;5;{}m", self.0);
 	}
 }
 
@@ -59,6 +62,10 @@ impl std::fmt::Display for FgColor {
 
 		#[cfg(feature = "zsh-shell")]
 		return write!(f, "%{{\x1b[38;5;{}m%}}", self.0);
+
+		#[cfg(feature = "PowerShell")]
+		return write!(f, "$([char]27)[38;5;{}m", self.0);
+
 	}
 }
 
@@ -72,5 +79,8 @@ impl std::fmt::Display for Reset {
 
 		#[cfg(feature = "zsh-shell")]
 		return f.write_str("%{\x1b[39m%}%{\x1b[49m%}");
+
+		#[cfg(feature = "PowerShell")]
+		return write!(f, "$([char]27)[0m");
 	}
 }
