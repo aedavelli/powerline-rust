@@ -14,6 +14,10 @@ chrono = { version = "0.4.11", optional = true }
 [target.'cfg(unix)'.dependencies]
 users = "0.10"
 
+[target.'cfg(windows)'.dependencies.winapi]
+version = "0.3.8"
+features = ["handleapi", "processthreadsapi", "winnt", "winbase", "lmcons", "securitybaseapi", "impl-default"]
+
 [features]
 default = ["bash-shell", "libgit"]
 bash-shell = []

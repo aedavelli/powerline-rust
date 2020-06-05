@@ -11,17 +11,11 @@ fn main() -> powerline::R<()> {
 	#[cfg(feature = "time")]
 	prompt.add_module(Time::<SimpleTheme>::with_time_format("%H:%M:%S"))?;
 
-	#[cfg(not(target_os = "windows"))]
-	{
-		//prompt.add_module(User::<SimpleTheme>::new())?;
-	}
-	//prompt.add_module(Host::<SimpleTheme>::new())?;
+	prompt.add_module(User::<SimpleTheme>::show_on_remote_shell())?;
+	prompt.add_module(Host::<SimpleTheme>::show_on_remote_shell())?;
 	prompt.add_module(Cwd::<SimpleTheme>::new(20, 2, false))?;
 	prompt.add_module(Git::<SimpleTheme>::new())?;
-	//#[cfg(not(target_os = "windows"))]
-	{
-		prompt.add_module(ReadOnly::<SimpleTheme>::new())?;
-	}
+	prompt.add_module(ReadOnly::<SimpleTheme>::new())?;
 	prompt.add_module(Cmd::<SimpleTheme>::new())?;
 	prompt.add_module(ExitCode::<SimpleTheme>::new())?;
 

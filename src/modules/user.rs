@@ -3,6 +3,9 @@ use std::marker::PhantomData;
 use super::Module;
 use crate::{terminal::Color, utils, Segment, R};
 
+#[cfg(target_os = "windows")]
+use crate::windows;
+
 pub struct User<S: UserScheme> {
 	show_on_local: bool,
 	scheme: PhantomData<S>,
@@ -27,14 +30,26 @@ impl<S: UserScheme> User<S> {
 impl<S: UserScheme> Module for User<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		if self.show_on_local || utils::is_remote_shell() {
-			let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
-			let bg = if user.uid() == 0 { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };
+			#[cfg(not(target_os = "windows"))]
+			{
+				let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
+				let bg = if user.uid() == 0 { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };
 
-			segments.push(Segment::simple(
-				format!(" {} ", user.name().to_str().unwrap()),
-				S::USERNAME_FG,
-				bg,
-			));
+				segments.push(Segment::simple(
+					format!(" {} ", user.name().to_str().unwrap()),
+					S::USERNAME_FG,
+					bg,
+				));
+			}
+			#[cfg(target_os = "windows")]
+			{
+				let bg = if windows::is_root() { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };
+				segments.push(Segment::simple(
+					format!(" {} ", windows::get_current_username()),
+					S::USERNAME_FG,
+					bg,
+				));
+			}
 		}
 
 		Ok(())

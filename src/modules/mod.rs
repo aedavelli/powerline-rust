@@ -6,7 +6,6 @@ mod exit_code;
 mod git;
 mod host;
 mod readonly;
-#[cfg(not(target_os = "windows"))]
 mod user;
 
 #[cfg(feature = "time")]
@@ -18,7 +17,6 @@ pub use exit_code::{ExitCode, ExitCodeScheme};
 pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
-#[cfg(not(target_os = "windows"))]
 pub use user::{User, UserScheme};
 
 #[cfg(feature = "time")]

@@ -3,6 +3,9 @@ use std::{env, marker::PhantomData};
 use super::Module;
 use crate::{powerline::Segment, terminal::Color, R};
 
+#[cfg(target_os = "windows")]
+use crate::windows;
+
 pub struct Cmd<S: CmdScheme> {
 	status: Option<bool>,
 	scheme: PhantomData<S>,
@@ -29,27 +32,25 @@ impl<S: CmdScheme> Cmd<S> {
 
 impl<S: CmdScheme> Module for Cmd<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let (fg, bg) = if cfg!(windows) {
+		let (fg, bg) = if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
 			(S::CMD_PASSED_FG, S::CMD_PASSED_BG)
 		} else {
-			if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
-				(S::CMD_PASSED_FG, S::CMD_PASSED_BG)
-			} else {
-				(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
-			}
+			(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
 		};
 
+		let is_root;
 		#[cfg(not(target_os = "windows"))]
 		{
-			let is_root = users::get_current_uid() == 0;
-			let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
-			segments.push(Segment::simple(format!(" {} ", special), fg, bg));
+			is_root = users::get_current_uid() == 0;
 		}
 
 		#[cfg(target_os = "windows")]
 		{
-			segments.push(Segment::simple(format!(" {} ", S::CMD_USER_SYMBOL), fg, bg));
+			is_root = windows::is_root();
 		}
+		
+		let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
+		segments.push(Segment::simple(format!(" {} ", special), fg, bg));
 		Ok(())
 	}
 }

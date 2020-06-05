@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, fs};
+use std::{fs, marker::PhantomData};
 
 use super::Module;
 use crate::{terminal::Color, Segment, R};

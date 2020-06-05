@@ -27,7 +27,6 @@ impl ExitCodeScheme for SimpleTheme {
 	const EXIT_CODE_FG: Color = Color(15);
 }
 
-#[cfg(not(target_os = "windows"))]
 impl UserScheme for SimpleTheme {
 	const USERNAME_BG: Color = Color(240);
 	const USERNAME_FG: Color = Color(250);

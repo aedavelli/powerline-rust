@@ -65,7 +65,6 @@ impl std::fmt::Display for FgColor {
 
 		#[cfg(feature = "PowerShell")]
 		return write!(f, "$([char]27)[38;5;{}m", self.0);
-
 	}
 }
 
